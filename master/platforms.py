@@ -233,6 +233,44 @@ def gamecube():
     platforms.append(platform)
 gamecube()
 
+def gp2x():
+    def setup(p):
+        platform.workerimage = "open2x"
+        platform.compatibleBuilds = (builds.ScummVMBuild, )
+        platform.env["CXX"] = "ccache /opt/open2x/bin/arm-open2x-linux-g++"
+        # Override CXXFLAGS to avoid warnings about redundant setting between -march and -mcpu
+        platform.env["CXXFLAGS"] = "-O3 -ffast-math -fomit-frame-pointer"
+        platform.configureargs.append("--host=gp2x")
+        platform.packaging_cmd = "gp2x-bundle"
+        platform.built_files = {
+            builds.ScummVMBuild: [ "release/scummvm-gp2x.tar.bz2" ],
+        }
+        platform.archiveext = "tar.bz2"
+        platform.testable = False
+        platform.run_tests = False
+
+    platform = Platform("gp2x-1")
+    platform.buildconfigureargs = {
+        builds.ScummVMBuild: [ "--enable-vkeybd",
+            # Disable big engines
+            "--disable-engines=glk,lastexpress,titanic,tsage,ultima" ],
+    }
+    setup(platform)
+    platforms.append(platform)
+
+    platform = Platform("gp2x-2")
+    platform.buildconfigureargs = {
+        builds.ScummVMBuild: [ "--enable-vkeybd",
+            # Only the other ones
+            "--disable-all-engines",
+            "--enable-engines=glk_adrift,glk_advsys,glk_agt,glk_alan2,glk_alan3,glk_archetype," +
+                "glk_frotz,glk_glulxe,glk_hugo,glk_jacl,glk_level9,glk_magnetic,glk_quest," +
+                "glk_scott,glk_tads,lastexpress,titanic,tsage,ultima" ],
+    }
+    setup(platform)
+    platforms.append(platform)
+gp2x()
+
 def nds():
     platform = Platform("nds")
     platform.workerimage = "devkitnds"
@@ -240,7 +278,8 @@ def nds():
     platform.env["CXX"] = "ccache /opt/devkitpro/devkitARM/bin/arm-none-eabi-c++"
     platform.configureargs.append("--host=ds")
     platform.buildconfigureargs = {
-        builds.ScummVMBuild: [ "--enable-plugins", "--default-dynamic" ],
+        builds.ScummVMBuild: [ "--enable-plugins", "--default-dynamic",
+            "--disable-engines=sword25,wintermute" ],
     }
     platform.built_files = {
         builds.ScummVMBuild: [ "scummvm.nds", "plugins" ],
